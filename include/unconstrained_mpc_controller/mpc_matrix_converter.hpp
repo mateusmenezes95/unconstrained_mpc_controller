@@ -26,18 +26,10 @@
 #include <vector>
 
 #include "unconstrained_mpc_controller/types/mpc_matrices.hpp"
+#include "unconstrained_mpc_controller/types/mpc_definitions.hpp"
 
 namespace unconstrained_mpc_controller
 {
-
-struct MpcParameters
-{
-  size_t state_size{0};
-  size_t output_size{0};
-  size_t control_size{0};
-  size_t prediction_horizon{0};
-  size_t control_horizon{0};
-};
 
 /**
  * @brief Converts vectors and matrices to the format required by the MPC
@@ -53,7 +45,7 @@ public:
    * @throw std::invalid_argument If any of the parameters is zero or negative or the control
    * horizon is greater than the prediction horizon.
    */
-  explicit MpcMatrixConverter(MpcParameters mpc_parameters);
+  explicit MpcMatrixConverter(types::MpcParameters mpc_parameters);
 
   /**
    * @brief Converts a vector of doubles in row-major order to an Eigen matrix
@@ -100,7 +92,7 @@ private:
    * @brief Parameters of the MPC
    *
    */
-  MpcParameters mpc_params_;
+  types::MpcParameters mpc_params_;
 };
 
 }  // namespace unconstrained_mpc_controller

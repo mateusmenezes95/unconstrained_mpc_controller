@@ -29,7 +29,7 @@
 
 TEST(MpcMatrixConverter, Constructor_throws_if_any_parameter_is_zero)
 {
-  unconstrained_mpc_controller::MpcParameters mpc_parameters;
+  unconstrained_mpc_controller::types::MpcParameters mpc_parameters;
   mpc_parameters.state_size = 1;
   mpc_parameters.output_size = 1;
   mpc_parameters.control_size = 1;
@@ -65,7 +65,7 @@ TEST(MpcMatrixConverter, Constructor_throws_if_any_parameter_is_zero)
 
 TEST(MpcMatrixConverter, Constructor_throws_if_control_horizon_is_greater_than_prediction_horizon)
 {
-  unconstrained_mpc_controller::MpcParameters mpc_parameters;
+  unconstrained_mpc_controller::types::MpcParameters mpc_parameters;
   mpc_parameters.state_size = 1;
   mpc_parameters.output_size = 1;
   mpc_parameters.control_size = 1;
@@ -81,7 +81,7 @@ TEST(MpcMatrixConverter, Constructor_throws_if_control_horizon_is_greater_than_p
 
 TEST(MpcMatrixConverter, Get_mpc_gain_fails_if_input_vector_has_invalid_size)
 {
-  unconstrained_mpc_controller::MpcParameters mpc_parameters;
+  unconstrained_mpc_controller::types::MpcParameters mpc_parameters;
   mpc_parameters.state_size = 2;
   mpc_parameters.output_size = 1;
   mpc_parameters.control_size = 3;
@@ -103,7 +103,7 @@ TEST(MpcMatrixConverter, Get_mpc_gain_fails_if_input_vector_has_invalid_size)
 
 TEST(MpcMatrixConverter, Get_ky_gain_fails_if_input_vector_has_invalid_size)
 {
-  unconstrained_mpc_controller::MpcParameters mpc_parameters;
+  unconstrained_mpc_controller::types::MpcParameters mpc_parameters;
   mpc_parameters.state_size = 2;
   mpc_parameters.output_size = 3;
   mpc_parameters.control_size = 3;
@@ -125,7 +125,7 @@ TEST(MpcMatrixConverter, Get_ky_gain_fails_if_input_vector_has_invalid_size)
 
 TEST(MpcMatrixConverter, Get_kmpc_gain_returns_correct_matrix)
 {
-  unconstrained_mpc_controller::MpcParameters mpc_parameters;
+  unconstrained_mpc_controller::types::MpcParameters mpc_parameters;
   mpc_parameters.state_size = 4;
   mpc_parameters.output_size = 4;
   mpc_parameters.control_size = 4;
@@ -167,7 +167,7 @@ TEST(MpcMatrixConverter, Get_kmpc_gain_returns_correct_matrix)
 
 TEST(MpcMatrixConverter, Get_ky_gain_returns_correct_matrix)
 {
-  unconstrained_mpc_controller::MpcParameters mpc_parameters;
+  unconstrained_mpc_controller::types::MpcParameters mpc_parameters;
   mpc_parameters.state_size = 4;
   mpc_parameters.output_size = 4;
   mpc_parameters.control_size = 4;

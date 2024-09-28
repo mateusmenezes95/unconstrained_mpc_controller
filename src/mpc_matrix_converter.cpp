@@ -27,27 +27,15 @@
 #include <stdexcept>
 #include <vector>
 
+#include "unconstrained_mpc_controller/types/mpc_definitions.hpp"
 #include "unconstrained_mpc_controller/types/mpc_matrices.hpp"
 
 namespace unconstrained_mpc_controller
 {
 
-MpcMatrixConverter::MpcMatrixConverter(MpcParameters mpc_parameters)
+MpcMatrixConverter::MpcMatrixConverter(types::MpcParameters mpc_parameters)
 {
-  if (mpc_parameters.state_size == 0 ||
-      mpc_parameters.output_size == 0 ||
-      mpc_parameters.control_size == 0 ||
-      mpc_parameters.prediction_horizon == 0 ||
-      mpc_parameters.control_horizon == 0)
-  {
-    throw std::invalid_argument("All parameters must be greater than zero.");
-  }
-
-  if (mpc_parameters.control_horizon > mpc_parameters.prediction_horizon) {
-    throw std::invalid_argument(
-        "The control horizon must be less than or equal to the prediction horizon.");
-  }
-
+  mpc_parameters.validate();
   mpc_params_ = mpc_parameters;
 }
 
