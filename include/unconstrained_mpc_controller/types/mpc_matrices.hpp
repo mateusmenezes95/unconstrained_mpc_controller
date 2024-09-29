@@ -52,6 +52,12 @@ typedef Eigen::MatrixXd ky_gain_t;
 typedef Eigen::VectorXd state_vector_t;
 
 /**
+ * @brief Output vector type.
+ *
+ */
+typedef Eigen::VectorXd output_vector_t;
+
+/**
  * @brief Augmented state vector type.
  *
  */
@@ -64,10 +70,10 @@ typedef Eigen::VectorXd augmented_state_vector_t;
 typedef Eigen::VectorXd control_vector_t;
 
 /**
- * @brief Reference vector type.
+ * @brief Vector with the future references in the prediction horizon.
  *
  */
-typedef Eigen::VectorXd reference_vector_t;
+typedef Eigen::VectorXd horizon_refs_vector_t;
 
 }  // namespace types
 

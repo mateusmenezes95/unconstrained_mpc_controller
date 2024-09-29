@@ -6,7 +6,6 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
                       -Werror=return-type -Werror=shadow -Werror=format)
 endif()
 
-# find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_ros REQUIRED)
 
@@ -25,24 +24,25 @@ foreach(dependency IN ITEMS ${DEPENDENCIES_FOR_THIS_PACKAGE})
   find_package(${dependency} REQUIRED)
 endforeach()
 
-add_library(mpc_matrix_converter
+add_library(mpc_matrix_utils
   src/mpc_matrix_converter.cpp
+  src/mpc_vectors_manipulator.cpp
 )
 
-target_compile_definitions(mpc_matrix_converter PUBLIC 
+target_compile_definitions(mpc_matrix_utils PUBLIC 
   c_std_99 cxx_std_20
 )
 
-target_include_directories(mpc_matrix_converter PUBLIC
+target_include_directories(mpc_matrix_utils PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 )
 
-target_link_libraries(mpc_matrix_converter PRIVATE
+target_link_libraries(mpc_matrix_utils PUBLIC
   fmt
 )
 
-ament_target_dependencies(mpc_matrix_converter
+ament_target_dependencies(mpc_matrix_utils
   eigen3_cmake_module
 )
 
@@ -90,7 +90,19 @@ if(BUILD_TESTING)
   )
 
   target_link_libraries(test_mpc_matrix_converter
-    mpc_matrix_converter
+    mpc_matrix_utils
+  )
+
+  ament_add_gmock(test_mpc_vectors_manipulator
+    test/test_mpc_vectors_manipulator.cpp
+  )
+
+  target_include_directories(test_mpc_vectors_manipulator PRIVATE
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  )
+
+  target_link_libraries(test_mpc_vectors_manipulator
+    mpc_matrix_utils
   )
 endif()
 
