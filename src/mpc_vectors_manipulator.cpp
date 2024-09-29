@@ -44,9 +44,6 @@ MpcVectorsManipulator::MpcVectorsManipulator(types::MpcParameters mpc_parameters
 
   future_refs_size_ = mpc_params_.output_size * mpc_params_.prediction_horizon;
   future_references_ = types::horizon_refs_vector_t::Zero(future_refs_size_);
-
-  horizon_refs_vec_bridge_.resize(future_refs_size_);
-  std::fill(horizon_refs_vec_bridge_.begin(), horizon_refs_vec_bridge_.end(), 0.0);
 }
 
 types::augmented_state_vector_t MpcVectorsManipulator::getAugmentedStateVector(
@@ -62,21 +59,38 @@ types::augmented_state_vector_t MpcVectorsManipulator::getAugmentedStateVector(
 types::horizon_refs_vector_t MpcVectorsManipulator::extractHorizonReferences(
   size_t current_time_step, const std::vector<double> & varying_time_references)
 {
-  auto horizon_start_it = varying_time_references.begin() +
-    (current_time_step * mpc_params_.state_size);
-  auto horizon_end_it = std::next(horizon_start_it, future_refs_size_);
+  size_t moving_window_start = current_time_step * mpc_params_.state_size;
+  auto horizon_start_it = varying_time_references.begin() + moving_window_start;
 
-  // If the horizon is greater than the varying time references, fill the future references
-  // with the last reference
-  if (horizon_end_it > varying_time_references.end())
-  {
-    auto begin_of_last_ref_it = std::prev(varying_time_references.end(), mpc_params_.state_size);
-    auto end_of_last_ref_it = varying_time_references.end();
+  // If the horizon is greater than the varying time references,
+  // fill the future references with the last reference
+  if (horizon_start_it >= varying_time_references.end()) {
+    auto last_ref = getLastReference(varying_time_references);
 
     auto tmp_it = future_references_.begin();
     for (size_t i = 0; i < mpc_params_.prediction_horizon; i++) {
-      std::copy(begin_of_last_ref_it, end_of_last_ref_it, tmp_it);
+      std::copy(last_ref.begin(), last_ref.end(), tmp_it);
       std::advance(tmp_it, mpc_params_.state_size);
+    }
+
+    return future_references_;
+  }
+
+  auto horizon_end_it = std::next(horizon_start_it, future_refs_size_);
+
+  // If the start of the horizon is less than the varying time references end,
+  // but the end of the horizon is greater than the varying time references end,
+  // fill the the remaining values with the last reference
+  if (horizon_end_it > varying_time_references.end()) {
+    size_t remaining_values = std::distance(horizon_start_it, varying_time_references.end());
+    size_t missing_refs = (future_refs_size_ - remaining_values) / mpc_params_.state_size;
+
+    auto fut_ref_it = std::copy(
+      horizon_start_it, varying_time_references.end(), future_references_.begin());
+    auto last_ref = getLastReference(varying_time_references);
+
+    for (size_t i = 0; i < missing_refs; i++) {
+      fut_ref_it = std::copy(last_ref.begin(), last_ref.end(), fut_ref_it);
     }
 
     return future_references_;
@@ -85,6 +99,14 @@ types::horizon_refs_vector_t MpcVectorsManipulator::extractHorizonReferences(
   std::copy(horizon_start_it, horizon_end_it, future_references_.begin());
 
   return future_references_;
+}
+
+std::vector<double> MpcVectorsManipulator::getLastReference(
+  const std::vector<double> & varying_time_references) const
+{
+  auto begin_of_last_ref_it = std::prev(varying_time_references.end(), mpc_params_.state_size);
+  auto end_of_last_ref_it = varying_time_references.end();
+  return std::vector<double>(begin_of_last_ref_it, end_of_last_ref_it);
 }
 
 }  // namespace unconstrained_mpc_controller

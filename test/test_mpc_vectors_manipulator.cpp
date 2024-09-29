@@ -20,12 +20,13 @@
 
 #include <eigen3/Eigen/Dense>
 #include <gmock/gmock.h>
+#include <fmt/format.h>
 
 #include "unconstrained_mpc_controller/mpc_vectors_manipulator.hpp"
 #include "unconstrained_mpc_controller/types/mpc_definitions.hpp"
 #include "unconstrained_mpc_controller/types/mpc_matrices.hpp"
 
-constexpr double EPSILON = 1e-6;
+constexpr double kEpsilon{1e-6};
 
 TEST(TestMpcVectorsManipulator, Get_successfuly_augmented_state_vector)
 {
@@ -57,88 +58,88 @@ TEST(TestMpcVectorsManipulator, Get_successfuly_augmented_state_vector)
 
   EXPECT_EQ(augmented_state.size(), 12);
 
-  EXPECT_NEAR(augmented_state(0), 0.1, EPSILON);
-  EXPECT_NEAR(augmented_state(1), 0.2, EPSILON);
-  EXPECT_NEAR(augmented_state(2), 0.3, EPSILON);
-  EXPECT_NEAR(augmented_state(3), 0.4, EPSILON);
-  EXPECT_NEAR(augmented_state(4), 0.5, EPSILON);
-  EXPECT_NEAR(augmented_state(5), 0.6, EPSILON);
-  EXPECT_NEAR(augmented_state(6), 1, EPSILON);
-  EXPECT_NEAR(augmented_state(7), 2, EPSILON);
-  EXPECT_NEAR(augmented_state(8), 3, EPSILON);
-  EXPECT_NEAR(augmented_state(9), 4, EPSILON);
-  EXPECT_NEAR(augmented_state(10), 5, EPSILON);
-  EXPECT_NEAR(augmented_state(11), 6, EPSILON);
+  EXPECT_NEAR(augmented_state(0), 0.1, kEpsilon);
+  EXPECT_NEAR(augmented_state(1), 0.2, kEpsilon);
+  EXPECT_NEAR(augmented_state(2), 0.3, kEpsilon);
+  EXPECT_NEAR(augmented_state(3), 0.4, kEpsilon);
+  EXPECT_NEAR(augmented_state(4), 0.5, kEpsilon);
+  EXPECT_NEAR(augmented_state(5), 0.6, kEpsilon);
+  EXPECT_NEAR(augmented_state(6), 1, kEpsilon);
+  EXPECT_NEAR(augmented_state(7), 2, kEpsilon);
+  EXPECT_NEAR(augmented_state(8), 3, kEpsilon);
+  EXPECT_NEAR(augmented_state(9), 4, kEpsilon);
+  EXPECT_NEAR(augmented_state(10), 5, kEpsilon);
+  EXPECT_NEAR(augmented_state(11), 6, kEpsilon);
 }
 
-TEST(TestMpcVectorsManipulator, Get_successfuly_future_references)
+struct StepSizeAndHorizonRefs
 {
-  unconstrained_mpc_controller::types::MpcParameters mpc_parameters;
-  mpc_parameters.state_size = 6;
-  mpc_parameters.output_size = 6;
-  mpc_parameters.control_size = 6;
-  mpc_parameters.prediction_horizon = 10;
-  mpc_parameters.control_horizon = 5;
-  mpc_parameters.sampling_time = 0.01;
+  StepSizeAndHorizonRefs(size_t step_size_arg, std::vector<double> horizon_refs_arg)
+  : step_size(step_size_arg), horizon_refs(horizon_refs_arg) {}
+  size_t step_size;
+  std::vector<double> horizon_refs;
+};
 
-  EXPECT_NO_THROW(mpc_parameters.validate());
+std::vector<StepSizeAndHorizonRefs> expected_horizon_refs = {
+  StepSizeAndHorizonRefs{0, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}},
+  StepSizeAndHorizonRefs{1, {3, 4, 5, 6, 7, 8, 9, 10, 11, 12}},
+  StepSizeAndHorizonRefs{2, {5, 6, 7, 8, 9, 10, 11, 12, 13, 14}},
+  StepSizeAndHorizonRefs{3, {7, 8, 9, 10, 11, 12, 13, 14, 15, 16}},
+  StepSizeAndHorizonRefs{4, {9, 10, 11, 12, 13, 14, 15, 16, 17, 18}},
+  StepSizeAndHorizonRefs{5, {11, 12, 13, 14, 15, 16, 17, 18, 19, 20}},
+  StepSizeAndHorizonRefs{6, {13, 14, 15, 16, 17, 18, 19, 20, 19, 20}},
+  StepSizeAndHorizonRefs{7, {15, 16, 17, 18, 19, 20, 19, 20, 19, 20}},
+  StepSizeAndHorizonRefs{8, {17, 18, 19, 20, 19, 20, 19, 20, 19, 20}},
+  StepSizeAndHorizonRefs{9, {19, 20, 19, 20, 19, 20, 19, 20, 19, 20}},
+  StepSizeAndHorizonRefs{10, {19, 20, 19, 20, 19, 20, 19, 20, 19, 20}},
+};
 
-  unconstrained_mpc_controller::MpcVectorsManipulator mpc_vectors_manipulator(mpc_parameters);
-
-  size_t references_qty = mpc_parameters.prediction_horizon * mpc_parameters.output_size * 10;
-  std::vector<double> varying_time_references(references_qty);
-
-  for (size_t i = 0; i < references_qty; i++) {
-    varying_time_references[i] = static_cast<double>(i + 1);
-  }
-
-  size_t current_time_step = 0;
-  unconstrained_mpc_controller::types::horizon_refs_vector_t future_references(
-    mpc_parameters.prediction_horizon * mpc_parameters.output_size);
-
-  future_references = mpc_vectors_manipulator.extractHorizonReferences(
-    current_time_step, varying_time_references);
-
-  EXPECT_EQ(future_references.size(), 60);
-
-  for (size_t i = 0; i < 60; i++) {
-    EXPECT_NEAR(future_references(i), static_cast<double>(i + 1), EPSILON);
-  }
-}
-
-TEST(TestMpcVectorsManipulator, Get_successfuly_future_references_with_last_reference)
+struct TestFixtureForStepSizesThatExceedsPredictionHorizon
+  : public testing::TestWithParam<StepSizeAndHorizonRefs>
 {
-  unconstrained_mpc_controller::types::MpcParameters mpc_parameters;
-  mpc_parameters.state_size = 6;
-  mpc_parameters.output_size = 6;
-  mpc_parameters.control_size = 6;
-  mpc_parameters.prediction_horizon = 10;
-  mpc_parameters.control_horizon = 5;
-  mpc_parameters.sampling_time = 0.01;
+  void SetUp() override
+  {
+    mpc_parameters.state_size = 2;
+    mpc_parameters.output_size = 2;
+    mpc_parameters.control_size = 2;
+    mpc_parameters.prediction_horizon = 5;
+    mpc_parameters.control_horizon = 5;
+    mpc_parameters.sampling_time = 0.01;
 
-  EXPECT_NO_THROW(mpc_parameters.validate());
+    EXPECT_NO_THROW(mpc_parameters.validate());
 
-  unconstrained_mpc_controller::MpcVectorsManipulator mpc_vectors_manipulator(mpc_parameters);
+    mpc_vectors_manipulator = std::make_unique<unconstrained_mpc_controller::MpcVectorsManipulator>(
+      mpc_parameters);
 
-  size_t references_qty = mpc_parameters.prediction_horizon * mpc_parameters.output_size * 10;
-  std::vector<double> varying_time_references(references_qty);
-
-  for (size_t i = 0; i < references_qty; i++) {
-    varying_time_references[i] = static_cast<double>(i + 1);
+    for (size_t i = 0; i < 20; i++) {
+      varying_time_references.push_back(static_cast<double>(i + 1));
+    }
   }
 
-  size_t current_time_step = 101;
-  unconstrained_mpc_controller::types::horizon_refs_vector_t future_references(
-    mpc_parameters.prediction_horizon * mpc_parameters.output_size);
+  unconstrained_mpc_controller::types::MpcParameters mpc_parameters;
+  std::unique_ptr<unconstrained_mpc_controller::MpcVectorsManipulator> mpc_vectors_manipulator;
+  std::vector<double> varying_time_references;
+};
 
-  future_references = mpc_vectors_manipulator.extractHorizonReferences(
-    current_time_step, varying_time_references);
+TEST_P(TestFixtureForStepSizesThatExceedsPredictionHorizon, Get_successfuly_future_references)
+{
+  size_t current_time_step = GetParam().step_size;
+  unconstrained_mpc_controller::types::horizon_refs_vector_t future_references =
+    mpc_vectors_manipulator->extractHorizonReferences(current_time_step, varying_time_references);
 
-  EXPECT_EQ(future_references.size(), 60);
+  size_t future_references_size = mpc_parameters.state_size * mpc_parameters.prediction_horizon;
+  EXPECT_EQ(future_references.size(), future_references_size);
 
-  std::vector<double> last_references = { 595, 596, 597, 598, 599, 600 };
-
-  for (size_t i = 0; i < 60; i++) {
-    EXPECT_NEAR(future_references(i), last_references[i % 6], EPSILON);
+  for (size_t i = 0; i < future_references_size; i++) {
+    EXPECT_NEAR(future_references(i), GetParam().horizon_refs[i], kEpsilon);
   }
 }
+
+INSTANTIATE_TEST_SUITE_P(
+  TestMpcVectorsManipulator,
+  TestFixtureForStepSizesThatExceedsPredictionHorizon,
+  testing::ValuesIn(expected_horizon_refs),
+  [](const testing::TestParamInfo<TestFixtureForStepSizesThatExceedsPredictionHorizon::ParamType> &
+  info_arg) {
+    return fmt::format("StepSize_{}", info_arg.param.step_size);
+  });

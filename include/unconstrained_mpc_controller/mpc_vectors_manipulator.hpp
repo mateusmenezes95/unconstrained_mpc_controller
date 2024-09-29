@@ -58,7 +58,7 @@ public:
 
   /**
    * @brief Extract the future references in the prediction horizon
-   * 
+   *
    * @param current_time_step Current time step k
    * @param varying_time_references The references that vary with time
    * @return types::horizon_refs_vector_t Vector with the future references in the prediction horizon
@@ -67,6 +67,15 @@ public:
     size_t current_time_step, const std::vector<double> & varying_time_references);
 
 private:
+  /**
+   * @brief Get the last reference in the varying time references
+   *
+   * @param varying_time_references The references that vary with time
+   * @return std::vector<double> The last reference in the varying time references
+   */
+  inline std::vector<double> getLastReference(
+    const std::vector<double> & varying_time_references) const;
+
   /**
    * @brief Store the parameters of the MPC
    *
@@ -106,13 +115,6 @@ private:
    * @brief Store the size of the future references vector
    */
   size_t future_refs_size_{0};
-
-  /**
-   * @brief Intermediate vector to store the future references in the prediction horizon before
-   * converting to Eigen vector
-   * 
-   */
-  std::vector<double> horizon_refs_vec_bridge_;
 };
 
 }  // namespace unconstrained_mpc_controller
