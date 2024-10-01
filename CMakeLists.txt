@@ -42,8 +42,40 @@ target_link_libraries(mpc_matrix_utils PUBLIC
   fmt
 )
 
-ament_target_dependencies(mpc_matrix_utils
+ament_target_dependencies(mpc_matrix_utils PUBLIC
   eigen3_cmake_module
+)
+
+add_library(hw_interfaces_helper INTERFACE)
+target_include_directories(hw_interfaces_helper INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+)
+target_link_libraries(hw_interfaces_helper INTERFACE
+  fmt
+)
+
+add_library(hw_ifaces_eigen_vec_bridges SHARED
+  src/eigen_vector_cmd_interface_bridge.cpp
+  src/state_interface_eigen_vector_bridge.cpp
+)
+
+target_compile_definitions(hw_ifaces_eigen_vec_bridges PUBLIC 
+  c_std_99 cxx_std_20
+)
+
+target_include_directories(hw_ifaces_eigen_vec_bridges PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+)
+
+target_link_libraries(hw_ifaces_eigen_vec_bridges PUBLIC
+  mpc_matrix_utils
+  fmt
+)
+
+ament_target_dependencies(hw_ifaces_eigen_vec_bridges PUBLIC
+  hardware_interface
 )
 
 add_library(unconstrained_mpc_controller
@@ -60,7 +92,7 @@ target_include_directories(unconstrained_mpc_controller PUBLIC
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 )
 
-ament_target_dependencies(unconstrained_mpc_controller
+ament_target_dependencies(unconstrained_mpc_controller PUBLIC
   ${DEPENDENCIES_FOR_THIS_PACKAGE}
 )
 
@@ -103,6 +135,38 @@ if(BUILD_TESTING)
 
   target_link_libraries(test_mpc_vectors_manipulator
     mpc_matrix_utils
+  )
+
+  ament_add_gmock(test_hw_ifaces_eigen_vec_bridges
+    test/test_hw_ifaces_eigen_vec_bridges.cpp
+  )
+
+  target_include_directories(test_hw_ifaces_eigen_vec_bridges PRIVATE
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  )
+
+  target_link_libraries(test_hw_ifaces_eigen_vec_bridges
+    hw_ifaces_eigen_vec_bridges
+  )
+
+  ament_target_dependencies(test_hw_ifaces_eigen_vec_bridges
+    hardware_interface
+  )
+
+  ament_add_gmock(test_hw_interfaces_helper
+    test/test_hw_interfaces_helper.cpp
+  )
+  
+  target_include_directories(test_hw_interfaces_helper PRIVATE
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  )
+
+  target_link_libraries(test_hw_interfaces_helper
+    hw_interfaces_helper
+  )
+
+  ament_target_dependencies(test_hw_interfaces_helper
+    hardware_interface
   )
 endif()
 
