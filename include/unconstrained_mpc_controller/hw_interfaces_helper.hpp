@@ -72,6 +72,12 @@ public:
     const std::vector<T> & interfaces,
     const std::unordered_map<std::string, size_t> & eigen_indexes)
   {
+    if (eigen_indexes.size() > interfaces.size()) {
+      throw std::runtime_error(
+        fmt::format("Number of interfaces ({}) is less than the number of Eigen indexes ({}).",
+                    interfaces.size(), eigen_indexes.size()));
+    }
+
     std::unordered_map<std::string, types::EigenHwInterfaceIndexPair> index_map;
     for (const auto & [name, idx] : eigen_indexes) {
       index_map[name].eigen_vec_idx = idx;

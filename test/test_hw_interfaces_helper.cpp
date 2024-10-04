@@ -43,9 +43,11 @@ struct TestFixture : public ::testing::Test
   hardware_interface::StateInterface state_interface_0{"state_interface", "index_0"};
   hardware_interface::StateInterface state_interface_1{"state_interface", "index_1"};
   hardware_interface::StateInterface state_interface_2{"state_interface", "index_2"};
+
   hardware_interface::CommandInterface cmd_interface_0{"cmd_interface", "index_0"};
   hardware_interface::CommandInterface cmd_interface_1{"cmd_interface", "index_1"};
   hardware_interface::CommandInterface cmd_interface_2{"cmd_interface", "index_2"};
+
   std::vector<hardware_interface::LoanedStateInterface> state_interfaces;
   std::vector<hardware_interface::LoanedCommandInterface> cmd_interfaces;
 };
@@ -58,6 +60,19 @@ TEST_F(TestFixture, Get_interface_by_name_fails_with_invalid_name)
   ASSERT_THROW(
     unconstrained_mpc_controller::HwInterfacesHelper::getInterfaceIndexByName(
     "command_interface/invalid_name", cmd_interfaces), std::runtime_error);
+}
+
+TEST_F(TestFixture, Get_index_pair_fails_when_the_map_passed_has_more_ifaces_than_the_vector)
+{
+  std::unordered_map<std::string, size_t> cmd_iface_to_eigen_vec_index{
+    {"cmd_interface/index_0", 0},
+    {"cmd_interface/index_1", 1},
+    {"cmd_interface/index_2", 2},
+    {"cmd_interface/index_3", 3}
+  };
+  ASSERT_THROW(
+    unconstrained_mpc_controller::HwInterfacesHelper::getIndexesPairs(
+    cmd_interfaces, cmd_iface_to_eigen_vec_index), std::runtime_error);
 }
 
 TEST_F(TestFixture, Get_interface_by_name_succeeds_with_valid_name)
