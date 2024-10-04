@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <eigen3/Eigen/Dense>
+
 #include <cstddef>
 #include <string>
 #include <unordered_map>
@@ -36,10 +38,31 @@ namespace unconstrained_mpc_controller
 class EigenVectorCmdInterfaceBridge
 {
 public:
+  /**
+   * @brief Construct a new object to bridge the Eigen vector with the command interfaces.
+   * 
+   * @param command_interfaces Loaned command interfaces to set the values from the Eigen vector.
+   * @param cmd_iface_to_eigen_vec_index Map of command interface names to the corresponding indexes
+   * in the Eigen vector.
+   * @throws std::runtime_error If a command interface name in the map is not found in the command
+   * interfaces vector.
+   */
   EigenVectorCmdInterfaceBridge(
     std::vector<hardware_interface::LoanedCommandInterface> & command_interfaces,
     std::unordered_map<std::string, size_t> & cmd_iface_to_eigen_vec_index);
+
+  /**
+   * @brief Default destructor.
+   * 
+   */
   virtual ~EigenVectorCmdInterfaceBridge() = default;
+
+  /**
+   * @brief Set the command interfaces with the values from the Eigen vector.
+   *
+   * @param cmd_vector The Eigen vector with the values to set the command interfaces.
+   */
+  void setCommandInterfacesFromEigenVector(const Eigen::VectorXd & cmd_vector) noexcept;
 
 private:
   /**

@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <eigen3/Eigen/Dense>
+
 #include <cstddef>
 #include <string>
 #include <unordered_map>
@@ -36,10 +38,36 @@ namespace unconstrained_mpc_controller
 class StateInterfaceEigenVectorBridge
 {
 public:
+  /**
+   * @brief Construct a new object to bridge the Eigen vector with the state interfaces.
+   *
+   * @param state_interfaces Loaned state interfaces to get the values from the hardware and set
+   * them in the Eigen vector.
+   * @param state_iface_to_eigen_vec_index Map of state interface names to the corresponding indexes
+   * in the Eigen vector.
+   * @throws std::runtime_error If a state interface name in the map is not found in @ref
+   * state_interfaces.
+   */
   StateInterfaceEigenVectorBridge(
     std::vector<hardware_interface::LoanedStateInterface> & state_interfaces,
     std::unordered_map<std::string, size_t> & state_iface_to_eigen_vec_index);
+
+  /**
+   * @brief Default destructor
+   * 
+   */
   virtual ~StateInterfaceEigenVectorBridge() = default;
+
+  /**
+   * @brief Set the Eigen vector from the state interfaces.
+   *
+   * Reads the values from the state interfaces and sets them in the given Eigen vector. The mapping
+   * between the state interfaces and the Eigen vector is done through the
+   * state_iface_to_eigen_vec_index map passed in the constructor.
+   *
+   * @return Eigen::VectorXd The Eigen vector with the values from the state interfaces
+   */
+  Eigen::VectorXd getStateInterfacesAsEigenVector() const noexcept;
 
 private:
   /**

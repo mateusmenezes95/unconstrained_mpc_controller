@@ -27,14 +27,28 @@
 
 #include "hardware_interface/loaned_command_interface.hpp"
 
+#include "unconstrained_mpc_controller/hw_interfaces_helper.hpp"
+
 namespace unconstrained_mpc_controller
 {
 
-unconstrained_mpc_controller::EigenVectorCmdInterfaceBridge::EigenVectorCmdInterfaceBridge(
+EigenVectorCmdInterfaceBridge::EigenVectorCmdInterfaceBridge(
   std::vector<hardware_interface::LoanedCommandInterface> & command_interfaces,
   std::unordered_map<std::string, size_t> & cmd_iface_to_eigen_vec_index)
-  : command_interfaces_(command_interfaces)
+: command_interfaces_(command_interfaces)
 {
+  index_map_ = HwInterfacesHelper::getIndexesPairs(
+    command_interfaces, cmd_iface_to_eigen_vec_index);
+}
+
+void EigenVectorCmdInterfaceBridge::setCommandInterfacesFromEigenVector(
+  const Eigen::VectorXd & eigen_vector) noexcept
+{
+  for (const auto & [_, index_pair] : index_map_)
+  {
+    command_interfaces_[index_pair.hw_iface_idx].set_value(
+      eigen_vector(index_pair.eigen_vec_idx));
+  }
 }
 
 }  // namespace unconstrained_mpc_controller
