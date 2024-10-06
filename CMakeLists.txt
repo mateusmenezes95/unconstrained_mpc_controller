@@ -8,6 +8,7 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_ros REQUIRED)
+find_package(generate_parameter_library REQUIRED)
 
 set(DEPENDENCIES_FOR_THIS_PACKAGE
   backward_ros
@@ -18,6 +19,7 @@ set(DEPENDENCIES_FOR_THIS_PACKAGE
   rclcpp
   rclcpp_lifecycle
   realtime_tools
+  std_msgs
 )
 
 foreach(dependency IN ITEMS ${DEPENDENCIES_FOR_THIS_PACKAGE})
@@ -78,6 +80,11 @@ ament_target_dependencies(hw_ifaces_eigen_vec_bridges PUBLIC
   hardware_interface
 )
 
+generate_parameter_library(
+  unconstrained_mpc_controller_params
+  src/unconstrained_mpc_controller_params.yaml
+)
+
 add_library(unconstrained_mpc_controller
   src/unconstrained_mpc_controller.cpp
 )
@@ -92,6 +99,14 @@ target_include_directories(unconstrained_mpc_controller PUBLIC
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 )
 
+target_link_libraries(unconstrained_mpc_controller PUBLIC
+  fmt
+  hw_ifaces_eigen_vec_bridges
+  hw_interfaces_helper
+  mpc_matrix_utils
+  unconstrained_mpc_controller_params
+)
+
 ament_target_dependencies(unconstrained_mpc_controller PUBLIC
   ${DEPENDENCIES_FOR_THIS_PACKAGE}
 )
@@ -102,7 +117,12 @@ install(
 )
 
 install(
-  TARGETS unconstrained_mpc_controller
+  TARGETS
+    unconstrained_mpc_controller
+    unconstrained_mpc_controller_params
+    hw_ifaces_eigen_vec_bridges
+    hw_interfaces_helper
+    mpc_matrix_utils
   EXPORT export_${PROJECT_NAME}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
@@ -168,18 +188,36 @@ if(BUILD_TESTING)
   ament_target_dependencies(test_hw_interfaces_helper
     hardware_interface
   )
+
+  install(
+    DIRECTORY test/config
+    DESTINATION test
+  )
+
+  ament_add_gmock(test_unconstrained_mpc_controller
+    test/test_unconstrained_mpc_controller.cpp
+  )
+  
+  target_include_directories(test_unconstrained_mpc_controller PRIVATE
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  )
+  
+  ament_target_dependencies(test_unconstrained_mpc_controller
+    controller_interface
+    hardware_interface
+    eigen3_cmake_module
+    rclcpp
+    rclcpp_lifecycle
+    std_msgs
+  )
+
+  target_link_libraries(test_unconstrained_mpc_controller
+    unconstrained_mpc_controller
+  )  
 endif()
 
-ament_export_include_directories(
-  "include/${PROJECT_NAME}"
-)
-
-ament_export_libraries(
-  unconstrained_mpc_controller
-)
-
 ament_export_targets(
-  export_${PROJECT_NAME}
+  export_${PROJECT_NAME} HAS_LIBRARY_TARGET
 )
 
 ament_package()

@@ -1,0 +1,78 @@
+unconstrained_mpc_controller:
+  state_size:
+    type: int
+    description: "Number of measured states in the system"
+    validation:
+      gt<>: [0]
+  output_size:
+    type: int
+    description: "Number of system outputs"
+    validation:
+      gt<>: [0]
+  control_size:
+    type: int
+    description: "Number of control inputs"
+    validation:
+      gt<>: [0]
+  prediction_horizon:
+    type: int
+    description: "Prediction horizon"
+    validation:
+      gt<>: [0]
+  control_horizon:
+    type: int
+    description: "Control horizon. Must be less than or equal to the prediction horizon"
+    validation:
+      gt<>: [0]
+  kmpc_gain:
+    type: double_array
+    description: 
+      "Gain matrix in row-major order for the portion of the control law that weighs the augmented
+      state. The matrix must have the shape control_size x augmented_state_size, where
+      augmented_state_size = state_size + control_size"
+  ky_gain:
+    type: double_array
+    description:
+      "Gain matrix in row-major order for the portion of the control law that weighs future
+      references. The matrix must have the shape control_size x (output_size * prediction_horizon)"
+  required_hw_ifaces:
+    plant:
+      control_input:
+        type: string_array
+        description:
+          "The control input computed by the controller is assigned to these interfaces. Ensure that
+          the order of the command interfaces matches the order of the control input. For example,
+          if the plant control input u = [u1, u2, u3, u4], the command interfaces should be
+          [cmd_interface/u1, cmd_interface/u2, cmd_interface/u3, cmd_interface/u4]. Note that
+          'cmd_interface/ui' is just an example; you can use any names as long as the order is
+          maintained."
+        validation: {
+          unique<>: [],
+          not_empty<>: []
+        }
+      state:
+        type: string_array
+        description:
+          "Names of the required ros2_control state interfaces in which that plant state is
+          assigned. Ensure that the order of the state interfaces matches the order of the states.
+          For example, if the state is x = [x1, x2, x3, x4], the ros2_control state interfaces
+          should be [state_interface/x1, state_interface/x2, state_interface/x3,
+          state_interface/x4]. Note that 'state_interface/xi' is just an example; you can use any
+          names as long as the order is maintained."
+        validation: {
+          unique<>: [],
+          not_empty<>: []
+        }
+      output:
+        type: string_array
+        description:
+          "Names of the required ros2_control state interfaces in which the plant output is
+          assigned. Ensure that the order of the output interfaces matches the order of the outputs.
+          For example, if the output is y = [y1, y2, y3, y4], the ros2_control state interfaces
+          should be [output_interface/y1, output_interface/y2, output_interface/y3,
+          output_interface/y4]. Note that 'output_interface/yi' is just an example; you can use any
+          names as long as the order is maintained."
+        validation: {
+          unique<>: [],
+          not_empty<>: []
+        }

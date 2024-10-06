@@ -45,7 +45,8 @@ types::kmpc_gain_t MpcMatrixConverter::getKmpcGain(
   return this->getMatrixFromVector(
     kmpc_gain_vector,
     mpc_params_.control_size,
-    mpc_params_.state_size);
+    mpc_params_.state_size + mpc_params_.control_size,
+    "kmpc gains");
 }
 
 types::ky_gain_t MpcMatrixConverter::getKyGain(
@@ -54,18 +55,18 @@ types::ky_gain_t MpcMatrixConverter::getKyGain(
   return this->getMatrixFromVector(
     ky_gain_vector,
     mpc_params_.control_size,
-    mpc_params_.output_size * mpc_params_.prediction_horizon);
+    mpc_params_.output_size * mpc_params_.prediction_horizon,
+    "ky gains");
 }
 
 Eigen::MatrixXd MpcMatrixConverter::getMatrixFromVector(
-  std::vector<double> & matrix_vector,
-  size_t rows,
-  size_t cols) const
+  std::vector<double> & matrix_vector, size_t rows, size_t cols, std::string_view vec_name) const
 {
   if (matrix_vector.size() != rows * cols) {
     throw std::invalid_argument(fmt::format(
-      "The size of the vector ({}) must be equal {} (rows * cols = {} * {})",
+      "The size ({}) of the vector with {} must be equal {} (rows * cols = {} * {})",
       matrix_vector.size(),
+      vec_name,
       rows * cols,
       rows,
       cols));

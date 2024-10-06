@@ -1,0 +1,34 @@
+unconstrained_mpc_controller:
+  ros__parameters:
+    state_size: 4
+    output_size: 4
+    control_size: 4
+    prediction_horizon: 6
+    control_horizon: 4
+    kmpc_gain:
+      [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
+       0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+       0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0,
+       0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+    ky_gain:
+      [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
+       0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+       0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0,
+       0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+    required_hw_ifaces:
+      plant:
+        control_input:
+          - cmd_interface/u1
+          - cmd_interface/u2
+          - cmd_interface/u3
+          - cmd_interface/u4
+        state:
+          - state_interface/x1
+          - state_interface/x2
+          - state_interface/x3
+          - state_interface/x4
+        output:
+          - output_interface/y1
+          - output_interface/y2
+          - output_interface/y3
+          - output_interface/y4

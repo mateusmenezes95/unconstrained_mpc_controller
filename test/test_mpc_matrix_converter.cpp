@@ -136,33 +136,49 @@ TEST(MpcMatrixConverter, Get_kmpc_gain_returns_correct_matrix)
 
   std::vector<double> kmpc_gain_vec =
     {
-      1.0, 2.0, 3.0, 4.0,
-      5.0, 6.0, 7.0, 8.0,
-      9.0, 10.0, 11.0, 12.0,
-      13.0, 14.0, 15.0, 16.0
+      1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0,
+      9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0,
+      17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0,
+      25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 31.0, 32.0
     };
 
   auto kmpc_matrix = converter.getKmpcGain(kmpc_gain_vec);
 
   EXPECT_EQ(kmpc_matrix.rows(), mpc_parameters.control_size);
-  EXPECT_EQ(kmpc_matrix.cols(), mpc_parameters.state_size);
+  EXPECT_EQ(kmpc_matrix.cols(), mpc_parameters.control_size + mpc_parameters.state_size);
 
   EXPECT_EQ(kmpc_matrix(0, 0), 1.0);
   EXPECT_EQ(kmpc_matrix(0, 1), 2.0);
   EXPECT_EQ(kmpc_matrix(0, 2), 3.0);
   EXPECT_EQ(kmpc_matrix(0, 3), 4.0);
-  EXPECT_EQ(kmpc_matrix(1, 0), 5.0);
-  EXPECT_EQ(kmpc_matrix(1, 1), 6.0);
-  EXPECT_EQ(kmpc_matrix(1, 2), 7.0);
-  EXPECT_EQ(kmpc_matrix(1, 3), 8.0);
-  EXPECT_EQ(kmpc_matrix(2, 0), 9.0);
-  EXPECT_EQ(kmpc_matrix(2, 1), 10.0);
-  EXPECT_EQ(kmpc_matrix(2, 2), 11.0);
-  EXPECT_EQ(kmpc_matrix(2, 3), 12.0);
-  EXPECT_EQ(kmpc_matrix(3, 0), 13.0);
-  EXPECT_EQ(kmpc_matrix(3, 1), 14.0);
-  EXPECT_EQ(kmpc_matrix(3, 2), 15.0);
-  EXPECT_EQ(kmpc_matrix(3, 3), 16.0);
+  EXPECT_EQ(kmpc_matrix(0, 4), 5.0);
+  EXPECT_EQ(kmpc_matrix(0, 5), 6.0);
+  EXPECT_EQ(kmpc_matrix(0, 6), 7.0);
+  EXPECT_EQ(kmpc_matrix(0, 7), 8.0);
+  EXPECT_EQ(kmpc_matrix(1, 0), 9.0);
+  EXPECT_EQ(kmpc_matrix(1, 1), 10.0);
+  EXPECT_EQ(kmpc_matrix(1, 2), 11.0);
+  EXPECT_EQ(kmpc_matrix(1, 3), 12.0);
+  EXPECT_EQ(kmpc_matrix(1, 4), 13.0);
+  EXPECT_EQ(kmpc_matrix(1, 5), 14.0);
+  EXPECT_EQ(kmpc_matrix(1, 6), 15.0);
+  EXPECT_EQ(kmpc_matrix(1, 7), 16.0);
+  EXPECT_EQ(kmpc_matrix(2, 0), 17.0);
+  EXPECT_EQ(kmpc_matrix(2, 1), 18.0);
+  EXPECT_EQ(kmpc_matrix(2, 2), 19.0);
+  EXPECT_EQ(kmpc_matrix(2, 3), 20.0);
+  EXPECT_EQ(kmpc_matrix(2, 4), 21.0);
+  EXPECT_EQ(kmpc_matrix(2, 5), 22.0);
+  EXPECT_EQ(kmpc_matrix(2, 6), 23.0);
+  EXPECT_EQ(kmpc_matrix(2, 7), 24.0);
+  EXPECT_EQ(kmpc_matrix(3, 0), 25.0);
+  EXPECT_EQ(kmpc_matrix(3, 1), 26.0);
+  EXPECT_EQ(kmpc_matrix(3, 2), 27.0);
+  EXPECT_EQ(kmpc_matrix(3, 3), 28.0);
+  EXPECT_EQ(kmpc_matrix(3, 4), 29.0);
+  EXPECT_EQ(kmpc_matrix(3, 5), 30.0);
+  EXPECT_EQ(kmpc_matrix(3, 6), 31.0);
+  EXPECT_EQ(kmpc_matrix(3, 7), 32.0);
 }
 
 TEST(MpcMatrixConverter, Get_ky_gain_returns_correct_matrix)

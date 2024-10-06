@@ -23,6 +23,8 @@
 #include <eigen3/Eigen/Dense>
 
 #include <cstddef>
+#include <stdexcept>
+#include <string_view>
 #include <vector>
 
 #include "unconstrained_mpc_controller/types/mpc_matrices.hpp"
@@ -84,9 +86,11 @@ private:
    * @param vec The vector of doubles to be converted.
    * @param rows The number of rows of the matrix.
    * @param cols The number of columns of the matrix.
+   * @param The name of the vector to be converted. This parameter is used in the exception message.
    * @return Eigen::MatrixXd The matrix with the values of the input vector.
    */
-  Eigen::MatrixXd getMatrixFromVector(std::vector<double> & vec, size_t rows, size_t cols) const;
+  Eigen::MatrixXd getMatrixFromVector(
+    std::vector<double> & vec, size_t rows, size_t cols, std::string_view vec_name) const;
 
   /**
    * @brief Parameters of the MPC
