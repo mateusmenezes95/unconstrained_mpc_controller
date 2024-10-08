@@ -49,7 +49,7 @@ public:
    */
   EigenVectorCmdInterfaceBridge(
     std::vector<hardware_interface::LoanedCommandInterface> & command_interfaces,
-    std::unordered_map<std::string, size_t> & cmd_iface_to_eigen_vec_index);
+    std::unordered_map<std::string, size_t> cmd_iface_to_eigen_vec_index);
 
   /**
    * @brief Default destructor.
@@ -63,6 +63,13 @@ public:
    * @param cmd_vector The Eigen vector with the values to set the command interfaces.
    */
   void setCommandInterfacesFromEigenVector(const Eigen::VectorXd & cmd_vector) noexcept;
+
+  /**
+   * @brief Get the command interfaces as an Eigen vector.
+   *
+   * @return Eigen::VectorXd The command interfaces as an Eigen vector.
+   */
+  Eigen::VectorXd getEigenVectorFromCommandInterfaces() const noexcept;
 
 private:
   /**

@@ -136,6 +136,22 @@ TEST_F(TestFixture, Set_command_interfaces_from_eigen_vector)
   ASSERT_EQ(cmd_interface_values[2], cmd_vector[2]);
 }
 
+TEST_F(TestFixture, Get_eigen_vector_from_command_interfaces)
+{
+  unconstrained_mpc_controller::EigenVectorCmdInterfaceBridge bridge(
+    this->cmd_interfaces, this->cmd_iface_to_eigen_vec_indexes);
+
+  cmd_interface_values[0] = 10.0;
+  cmd_interface_values[1] = 20.0;
+  cmd_interface_values[2] = 30.0;
+
+  Eigen::VectorXd read_vec = bridge.getEigenVectorFromCommandInterfaces();
+
+  ASSERT_EQ(cmd_interface_values[0], read_vec[0]);
+  ASSERT_EQ(cmd_interface_values[1], read_vec[1]);
+  ASSERT_EQ(cmd_interface_values[2], read_vec[2]);
+}
+
 TEST_F(TestFixture, Get_state_interfaces_as_eigen_vector)
 {
   unconstrained_mpc_controller::StateInterfaceEigenVectorBridge bridge(

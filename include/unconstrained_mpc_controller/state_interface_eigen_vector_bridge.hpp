@@ -50,7 +50,7 @@ public:
    */
   StateInterfaceEigenVectorBridge(
     std::vector<hardware_interface::LoanedStateInterface> & state_interfaces,
-    std::unordered_map<std::string, size_t> & state_iface_to_eigen_vec_index);
+    std::unordered_map<std::string, size_t> state_iface_to_eigen_vec_index);
 
   /**
    * @brief Default destructor

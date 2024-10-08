@@ -20,6 +20,8 @@
 
 #include "unconstrained_mpc_controller/eigen_vector_cmd_interface_bridge.hpp"
 
+#include <eigen3/Eigen/Dense>
+
 #include <cstddef>
 #include <string>
 #include <unordered_map>
@@ -34,7 +36,7 @@ namespace unconstrained_mpc_controller
 
 EigenVectorCmdInterfaceBridge::EigenVectorCmdInterfaceBridge(
   std::vector<hardware_interface::LoanedCommandInterface> & command_interfaces,
-  std::unordered_map<std::string, size_t> & cmd_iface_to_eigen_vec_index)
+  std::unordered_map<std::string, size_t> cmd_iface_to_eigen_vec_index)
 : command_interfaces_(command_interfaces)
 {
   index_map_ = HwInterfacesHelper::getIndexesPairs(
@@ -49,6 +51,16 @@ void EigenVectorCmdInterfaceBridge::setCommandInterfacesFromEigenVector(
     command_interfaces_[index_pair.hw_iface_idx].set_value(
       eigen_vector(index_pair.eigen_vec_idx));
   }
+}
+
+Eigen::VectorXd EigenVectorCmdInterfaceBridge::getEigenVectorFromCommandInterfaces() const noexcept
+{
+  Eigen::VectorXd eigen_vec(index_map_.size());
+  for (const auto & [_, index_pair] : index_map_)
+  {
+    eigen_vec(index_pair.eigen_vec_idx) = command_interfaces_[index_pair.hw_iface_idx].get_value();
+  }
+  return eigen_vec;
 }
 
 }  // namespace unconstrained_mpc_controller
