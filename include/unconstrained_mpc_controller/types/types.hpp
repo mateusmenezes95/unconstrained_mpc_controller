@@ -66,7 +66,13 @@ struct PlantData {
    * Element in index 0 is the control input at time k-1 and element in index 1 is the control input
    * at time k.
    */
-  std::array<types::control_vector_t, kNumberOfVectorsToStore> control_input;
+  std::array<control_vector_t, kNumberOfVectorsToStore> control_input;
+
+  /**
+   * @brief Increment of the control input at time k, e,g, delta u(k)
+   *
+   */
+  control_vector_t control_input_increment;
 
   /**
    * @brief Helper array to store the last and current state vector
@@ -74,19 +80,19 @@ struct PlantData {
    * Element in index 0 is the state vector at time k-1 and element in index 1 is the state vector
    * at time k.
    */
-  std::array<types::state_vector_t, kNumberOfVectorsToStore> state;
+  std::array<state_vector_t, kNumberOfVectorsToStore> state;
 
   /**
    * @brief Output vector at time k as variable to avoid reallocation of memory
    *
    */
-  types::output_vector_t output;
+  output_vector_t output;
 
   /**
    * @brief Augmented state vector at time k as variable to avoid reallocation of memory
    *
    */
-  types::augmented_state_vector_t augmented_state;
+  augmented_state_vector_t augmented_state;
 };
 
 }  // namespace types

@@ -215,12 +215,10 @@ public:
 
 private:
   /**
-   * @brief Reset the controller.
-   *
-   * Deactivate the subscriber and clear MPC related variables.
-   *
+   * @brief Reset the values of all plant vectors in @ref plant_ to zero.
+   * 
    */
-  void reset();
+  void resetPlantVectors();
 
   /**
    * @brief Holds the node that will be used by the controller.
@@ -262,16 +260,28 @@ private:
   std::unique_ptr<MpcVectorsManipulator> mpc_vectors_manipulator_;
 
   /**
-   * @brief Eigen vector bridge that connects the computed control signal to the command interfaces
+   * @brief Struct that holds the Eigen bridges to the hardware interfaces.
    *
    */
-  std::unique_ptr<EigenVectorCmdInterfaceBridge> eigen_vec_cmd_iface_bridge_;
+  struct EigenHwInterfaceBridges {
+    /**
+     * @brief Eigen vector bridge that connects the computed control input to the command interfaces
+     *
+     */
+    std::unique_ptr<EigenVectorCmdInterfaceBridge> plant_control_input;
 
-  /**
-   * @brief Eigen vector bridge that connects the system states to the state interfaces
-   *
-   */
-  std::unique_ptr<StateInterfaceEigenVectorBridge> state_iface_eigen_vec_bridge_;
+    /**
+     * @brief Eigen vector bridge that connects the plant state to the state interfaces
+     *
+     */
+    std::unique_ptr<StateInterfaceEigenVectorBridge> plant_state;
+
+    /**
+     * @brief Eigen vector bridge that connects the plant output to the state interfaces
+     *
+     */
+    std::unique_ptr<StateInterfaceEigenVectorBridge> plant_output;
+  } eigen_hw_ifaces_bridge_;
 
   /**
    * @brief Unconstrained MPC gain matrix that multiplies the augmented state vector to obtain the
