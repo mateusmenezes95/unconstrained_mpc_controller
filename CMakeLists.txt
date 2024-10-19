@@ -13,8 +13,9 @@ find_package(generate_parameter_library REQUIRED)
 set(DEPENDENCIES_FOR_THIS_PACKAGE
   backward_ros
   controller_interface
-  hardware_interface
   eigen3_cmake_module
+  hardware_interface
+  geometry_msgs
   pluginlib
   rclcpp
   rclcpp_lifecycle
@@ -131,6 +132,12 @@ install(
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
+)
+
+install(
+  PROGRAMS
+    scripts/future_refs_publisher.py
+    DESTINATION lib/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)

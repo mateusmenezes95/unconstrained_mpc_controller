@@ -28,8 +28,10 @@
 #include <vector>
 
 #include "controller_interface/controller_interface.hpp"
+#include "geometry_msgs/msg/wrench.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "realtime_tools/realtime_publisher.h"
 #include "std_msgs/msg/float64_multi_array.hpp"
 
 #include "unconstrained_mpc_controller_params.hpp"  // NOLINT
@@ -138,6 +140,24 @@ controller_interface::CallbackReturn UnconstrainedMpcController::on_configure(
     std::make_shared<std_msgs::msg::Float64MultiArray>();
   initial_generalized_ctrl_forces->data.resize(100, 0.0);
   future_refs_rt_buffer_.writeFromNonRT(initial_generalized_ctrl_forces);
+
+  future_refs_.clear();
+  // Start with a vector of zeros. TODO(mmeneses): Allows to pass initial future refs as parameter
+  future_refs_.resize(params_.prediction_horizon*params_.state_size, 0.0);
+
+  control_input_pub_ptr_ = this->node_->create_publisher<geometry_msgs::msg::Wrench>(
+    "~/control_inputs", rclcpp::SystemDefaultsQoS());
+
+  control_input_rt_pub_ptr =
+    std::make_shared<realtime_tools::RealtimePublisher<geometry_msgs::msg::Wrench>>(
+      control_input_pub_ptr_);
+
+  robot_vel_pub_ptr_ = this->node_->create_publisher<geometry_msgs::msg::Twist>(
+    "~/robot_vel", rclcpp::SystemDefaultsQoS());
+
+  robot_vel_rt_pub_ptr =
+    std::make_shared<realtime_tools::RealtimePublisher<geometry_msgs::msg::Twist>>(
+      robot_vel_pub_ptr_);
 
   RCLCPP_INFO(this->node_->get_logger(), "Configuration of unconstrained mpc controller succeeded");
 
@@ -289,6 +309,18 @@ UnconstrainedMpcController::update(const rclcpp::Time & time, const rclcpp::Dura
 {
   std::ignore = time;
   std::ignore = period;
+
+  robot_vel_vec_ = eigen_hw_ifaces_bridge_.plant_state->getStateInterfacesAsEigenVector();
+  robot_vel_msg_.linear.x = robot_vel_vec_(0);
+  robot_vel_msg_.linear.y = robot_vel_vec_(1);
+  robot_vel_msg_.linear.z = robot_vel_vec_(2);
+  robot_vel_msg_.angular.z = robot_vel_vec_(3);
+
+  if (robot_vel_rt_pub_ptr->trylock()) {
+    robot_vel_rt_pub_ptr->msg_ = robot_vel_msg_;
+    robot_vel_rt_pub_ptr->unlockAndPublish();
+  }
+
   if (future_refs_rcvd_) {
     auto future_refs_values = future_refs_rt_buffer_.readFromRT();
 
@@ -355,6 +387,16 @@ UnconstrainedMpcController::update(const rclcpp::Time & time, const rclcpp::Dura
   plant_.control_input[kPreviousStep] = plant_.control_input[kCurrentStep];
 
   current_time_step_++;
+
+  ctrl_input_as_wrench_.force.x = plant_.control_input[kCurrentStep](0);
+  ctrl_input_as_wrench_.force.y = plant_.control_input[kCurrentStep](1);
+  ctrl_input_as_wrench_.force.z = plant_.control_input[kCurrentStep](2);
+  ctrl_input_as_wrench_.torque.z = plant_.control_input[kCurrentStep](3);
+
+  if (control_input_rt_pub_ptr->trylock()) {
+    control_input_rt_pub_ptr->msg_ = ctrl_input_as_wrench_;
+    control_input_rt_pub_ptr->unlockAndPublish();
+  }
 
   return controller_interface::return_type::OK;
 }

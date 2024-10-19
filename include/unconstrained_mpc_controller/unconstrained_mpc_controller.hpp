@@ -27,9 +27,12 @@
 #include <vector>
 
 #include "controller_interface/controller_interface.hpp"
+#include "geometry_msgs/msg/twist.hpp"
+#include "geometry_msgs/msg/wrench.hpp"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "realtime_tools/realtime_buffer.h"
+#include "realtime_tools/realtime_publisher.h"
 #include "std_msgs/msg/float64_multi_array.hpp"
 
 #include "unconstrained_mpc_controller_params.hpp"  // NOLINT
@@ -44,7 +47,7 @@
 namespace unconstrained_mpc_controller
 {
 
-static constexpr size_t kMillisecondToWarnNoFutureRefsRcvd{10000};
+static constexpr size_t kMillisecondToWarnNoFutureRefsRcvd{1000};
 
 /**
  * @brief Represent the discrete time step k-1 in a array with only two elements.
@@ -333,6 +336,32 @@ private:
    */
   realtime_tools::RealtimeBuffer<std_msgs::msg::Float64MultiArray::SharedPtr>
   future_refs_rt_buffer_;
+
+  /**
+   * @brief Store the control inputs to be published
+   * 
+   */
+  geometry_msgs::msg::Wrench ctrl_input_as_wrench_;
+
+  /**
+   * @brief Publisher to make control inputs available through a topic
+   * 
+   */
+  rclcpp::Publisher<geometry_msgs::msg::Wrench>::SharedPtr control_input_pub_ptr_;
+
+  /**
+   * @brief Realtime publisher to make control inputs available
+   *
+   * Using a realtime publisher avoid block behaviors in the update method
+   */
+  std::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::msg::Wrench>>
+  control_input_rt_pub_ptr;
+
+  types::state_vector_t robot_vel_vec_;
+  geometry_msgs::msg::Twist robot_vel_msg_;
+  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr robot_vel_pub_ptr_;
+  std::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::msg::Twist>>
+  robot_vel_rt_pub_ptr;
 
   /**
    * @brief Flag to check if the future references were received.
