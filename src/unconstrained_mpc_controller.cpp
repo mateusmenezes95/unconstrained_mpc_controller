@@ -373,3 +373,9 @@ void UnconstrainedMpcController::resetPlantVectors()
 }
 
 }  // namespace unconstrained_mpc_controller
+
+#include "pluginlib/class_list_macros.hpp"
+
+PLUGINLIB_EXPORT_CLASS(
+  unconstrained_mpc_controller::UnconstrainedMpcController,
+  controller_interface::ControllerInterface)

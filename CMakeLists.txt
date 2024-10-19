@@ -111,6 +111,10 @@ ament_target_dependencies(unconstrained_mpc_controller PUBLIC
   ${DEPENDENCIES_FOR_THIS_PACKAGE}
 )
 
+pluginlib_export_plugin_description_file(controller_interface
+  plugin_unconstrained_mpc_controller.xml
+)
+
 install(
   DIRECTORY include/
   DESTINATION include/${PROJECT_NAME}
@@ -132,6 +136,8 @@ install(
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
+  find_package(controller_manager REQUIRED)
+  find_package(ros2_control_test_assets REQUIRED)
 
   ament_add_gmock(test_mpc_matrix_converter
     test/test_mpc_matrix_converter.cpp
@@ -213,7 +219,21 @@ if(BUILD_TESTING)
 
   target_link_libraries(test_unconstrained_mpc_controller
     unconstrained_mpc_controller
-  )  
+  )
+
+  add_rostest_with_parameters_gmock(test_load_unconstrained_mpc_controller
+    test/test_load_unconstrained_mpc_controller.cpp
+    test/config/test_unconstrained_mpc_controller_params.yaml
+  )
+
+  ament_target_dependencies(test_load_unconstrained_mpc_controller
+    controller_manager
+    ros2_control_test_assets
+  )
+
+  target_compile_definitions(test_load_unconstrained_mpc_controller PRIVATE
+    TEST_DIRECTORY_PATH="${CMAKE_CURRENT_SOURCE_DIR}/test"
+  )
 endif()
 
 ament_export_targets(

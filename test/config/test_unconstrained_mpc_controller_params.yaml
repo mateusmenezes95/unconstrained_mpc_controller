@@ -1,4 +1,4 @@
-unconstrained_mpc_controller:
+test_unconstrained_mpc_controller:
   ros__parameters:
     state_size: 4
     output_size: 4

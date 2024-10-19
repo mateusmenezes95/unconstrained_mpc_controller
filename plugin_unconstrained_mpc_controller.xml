@@ -1,0 +1,9 @@
+<library path="unconstrained_mpc_controller">
+  <class name="unconstrained_mpc_controller/UnconstrainedMpcController"
+         type="unconstrained_mpc_controller::UnconstrainedMpcController"
+         base_class_type="controller_interface::ControllerInterface">
+  <description>
+    Unconstrained MPC controller for MIMO systemas under the ros2_control concepts
+  </description>
+  </class>
+</library>
