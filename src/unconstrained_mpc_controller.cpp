@@ -159,6 +159,8 @@ controller_interface::CallbackReturn UnconstrainedMpcController::on_configure(
     std::make_shared<realtime_tools::RealtimePublisher<geometry_msgs::msg::Twist>>(
       robot_vel_pub_ptr_);
 
+  period_rt_pub_.create(node_, "~/control_loop_period");
+
   RCLCPP_INFO(this->node_->get_logger(), "Configuration of unconstrained mpc controller succeeded");
 
   return controller_interface::CallbackReturn::SUCCESS;
@@ -308,7 +310,9 @@ controller_interface::return_type
 UnconstrainedMpcController::update(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
   std::ignore = time;
-  std::ignore = period;
+
+  period_rt_pub_.getMsg().data = period.seconds();
+  period_rt_pub_.publish();
 
   robot_vel_vec_ = eigen_hw_ifaces_bridge_.plant_state->getStateInterfacesAsEigenVector();
   robot_vel_msg_.linear.x = robot_vel_vec_(0);
@@ -380,8 +384,13 @@ UnconstrainedMpcController::update(const rclcpp::Time & time, const rclcpp::Dura
   plant_.control_input[kCurrentStep] = plant_.control_input[kPreviousStep] +
     plant_.control_input_increment;
 
-  eigen_hw_ifaces_bridge_.plant_control_input->setCommandInterfacesFromEigenVector(
-    plant_.control_input[kCurrentStep]);
+  control_inputs_queue_.push(plant_.control_input[kCurrentStep]);
+
+  if (control_inputs_queue_.size() > delays) {
+    eigen_hw_ifaces_bridge_.plant_control_input->setCommandInterfacesFromEigenVector(
+      control_inputs_queue_.front());
+    control_inputs_queue_.pop();
+  }
 
   plant_.state[kPreviousStep] = plant_.state[kCurrentStep];
   plant_.control_input[kPreviousStep] = plant_.control_input[kCurrentStep];

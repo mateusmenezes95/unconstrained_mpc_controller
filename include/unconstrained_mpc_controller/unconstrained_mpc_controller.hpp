@@ -24,6 +24,7 @@
 #include <atomic>
 #include <cstddef>
 #include <memory>
+#include <queue>
 #include <vector>
 
 #include "controller_interface/controller_interface.hpp"
@@ -34,11 +35,13 @@
 #include "realtime_tools/realtime_buffer.h"
 #include "realtime_tools/realtime_publisher.h"
 #include "std_msgs/msg/float64_multi_array.hpp"
+#include "std_msgs/msg/float64.hpp"
 
 #include "unconstrained_mpc_controller_params.hpp"  // NOLINT
 #include "unconstrained_mpc_controller/eigen_vector_cmd_interface_bridge.hpp"
 #include "unconstrained_mpc_controller/mpc_matrix_converter.hpp"
 #include "unconstrained_mpc_controller/mpc_vectors_manipulator.hpp"
+#include "unconstrained_mpc_controller/realtime_publisher_wrapper.hpp"
 #include "unconstrained_mpc_controller/state_interface_eigen_vector_bridge.hpp"
 #include "unconstrained_mpc_controller/types/mpc_definitions.hpp"
 #include "unconstrained_mpc_controller/types/mpc_matrices.hpp"
@@ -363,6 +366,8 @@ private:
   std::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::msg::Twist>>
   robot_vel_rt_pub_ptr;
 
+  RealtimePublisherWrapper<std_msgs::msg::Float64> period_rt_pub_;
+
   /**
    * @brief Flag to check if the future references were received.
    *
@@ -375,6 +380,9 @@ private:
    * This is the "k" index of the discrete time system.
    */
   std::atomic<size_t> current_time_step_{0};
+
+  static constexpr uint16_t delays{3};
+  std::queue<types::control_vector_t> control_inputs_queue_;
 };
 
 }  // namespace unconstrained_mpc_controller
