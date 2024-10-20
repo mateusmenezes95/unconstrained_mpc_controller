@@ -35,6 +35,11 @@ unconstrained_mpc_controller:
     description:
       "Gain matrix in row-major order for the portion of the control law that weighs future
       references. The matrix must have the shape control_size x (output_size * prediction_horizon)"
+  control_input_delay_samples:
+    type: int
+    description:
+      "Considering the discrete signal u[k - d], this parameter defines the value for 'd'"
+    default_value: 0
   required_hw_ifaces:
     plant:
       control_input:

@@ -340,33 +340,15 @@ private:
   realtime_tools::RealtimeBuffer<std_msgs::msg::Float64MultiArray::SharedPtr>
   future_refs_rt_buffer_;
 
-  /**
-   * @brief Store the control inputs to be published
-   * 
-   */
-  geometry_msgs::msg::Wrench ctrl_input_as_wrench_;
-
-  /**
-   * @brief Publisher to make control inputs available through a topic
-   * 
-   */
-  rclcpp::Publisher<geometry_msgs::msg::Wrench>::SharedPtr control_input_pub_ptr_;
-
-  /**
-   * @brief Realtime publisher to make control inputs available
-   *
-   * Using a realtime publisher avoid block behaviors in the update method
-   */
-  std::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::msg::Wrench>>
-  control_input_rt_pub_ptr;
-
+  // TODO(mmeneses): Move publisher for independent package. This implementation must be generic
+  // and agnostic to the robot/plant being used
   types::state_vector_t robot_vel_vec_;
-  geometry_msgs::msg::Twist robot_vel_msg_;
-  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr robot_vel_pub_ptr_;
-  std::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::msg::Twist>>
-  robot_vel_rt_pub_ptr;
-
+  RealtimePublisherWrapper<geometry_msgs::msg::Wrench> control_input_rt_pub_ptr_;
+  RealtimePublisherWrapper<geometry_msgs::msg::Twist> robot_vel_rt_pub_ptr_;
+  RealtimePublisherWrapper<geometry_msgs::msg::Twist> desired_robot_vel_rt_pub_ptr_;
   RealtimePublisherWrapper<std_msgs::msg::Float64> period_rt_pub_;
+  std::queue<types::control_vector_t> control_inputs_queue_;
+  std::vector<double> current_desired_robot_vel;
 
   /**
    * @brief Flag to check if the future references were received.
@@ -380,9 +362,6 @@ private:
    * This is the "k" index of the discrete time system.
    */
   std::atomic<size_t> current_time_step_{0};
-
-  static constexpr uint16_t delays{3};
-  std::queue<types::control_vector_t> control_inputs_queue_;
 };
 
 }  // namespace unconstrained_mpc_controller
