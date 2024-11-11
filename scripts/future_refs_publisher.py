@@ -30,7 +30,7 @@ class FutureReferencesPublisher(Node):
     def __init__(self):
         super().__init__('future_refs_publisher')
         self.publisher = self.create_publisher(
-            Float64MultiArray, '/unconstrained_mpc_controller_for_light_configuration/future_refs', 10)
+            Float64MultiArray, '/unconstrained_mpc/future_refs', 10)
 
     def read_csv_file(self, file_path):
         with open(file_path, 'r') as file:
