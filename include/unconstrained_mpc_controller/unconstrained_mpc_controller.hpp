@@ -347,7 +347,6 @@ private:
   RealtimePublisherWrapper<geometry_msgs::msg::Twist> robot_vel_rt_pub_ptr_;
   RealtimePublisherWrapper<geometry_msgs::msg::Twist> desired_robot_vel_rt_pub_ptr_;
   RealtimePublisherWrapper<std_msgs::msg::Float64> period_rt_pub_;
-  std::queue<types::control_vector_t> control_inputs_queue_;
   std::vector<double> current_desired_robot_vel;
 
   /**
@@ -362,6 +361,10 @@ private:
    * This is the "k" index of the discrete time system.
    */
   std::atomic<size_t> current_time_step_{0};
+
+  static size_t generateRandomDelay(int max_samples_delay);
+  std::vector<types::control_vector_t> control_inputs_storage_;
+  size_t control_inputs_storage_index_{0};
 };
 
 }  // namespace unconstrained_mpc_controller

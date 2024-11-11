@@ -23,6 +23,7 @@
 #include <fmt/format.h>
 
 #include <memory>
+#include <random>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -149,7 +150,11 @@ controller_interface::CallbackReturn UnconstrainedMpcController::on_configure(
   control_input_rt_pub_ptr_.create(node_, "~/control_input");
   desired_robot_vel_rt_pub_ptr_.create(node_, "~/desired_robot_vel");
   robot_vel_rt_pub_ptr_.create(node_, "~/robot_vel");
-  period_rt_pub_.create(node_, "~/control_loop_period");
+  period_rt_pub_.create(node_, "~/current_delay");
+
+  control_inputs_storage_.clear();
+  control_inputs_storage_.resize(params_.control_input_delay_samples + 1);
+  control_inputs_storage_index_ = 0;
 
   RCLCPP_INFO(this->node_->get_logger(), "Configuration of unconstrained mpc controller succeeded");
 
@@ -301,9 +306,6 @@ UnconstrainedMpcController::update(const rclcpp::Time & time, const rclcpp::Dura
 {
   std::ignore = time;
 
-  period_rt_pub_.getMsg().data = period.seconds();
-  // period_rt_pub_.publish();
-
   robot_vel_vec_ = eigen_hw_ifaces_bridge_.plant_state->getStateInterfacesAsEigenVector();
 
   auto & robot_vel_msg = robot_vel_rt_pub_ptr_.getMsg();
@@ -372,12 +374,20 @@ UnconstrainedMpcController::update(const rclcpp::Time & time, const rclcpp::Dura
   plant_.control_input[kCurrentStep] = plant_.control_input[kPreviousStep] +
     plant_.control_input_increment;
 
-  control_inputs_queue_.push(plant_.control_input[kCurrentStep]);
+  control_inputs_storage_.at(control_inputs_storage_index_) = plant_.control_input[kCurrentStep];
 
-  if (control_inputs_queue_.size() > static_cast<size_t>(params_.control_input_delay_samples)) {
+  control_inputs_storage_index_++;
+  if (control_inputs_storage_index_ > static_cast<size_t>(params_.control_input_delay_samples)) {
+    control_inputs_storage_index_ = 0;
+  }
+
+  size_t random_delay = generateRandomDelay(static_cast<int>(params_.control_input_delay_samples));
+  period_rt_pub_.getMsg().data = period.seconds() * static_cast<double>(random_delay);
+  period_rt_pub_.publish();
+
+  if (current_time_step_ >= random_delay) {
     eigen_hw_ifaces_bridge_.plant_control_input->setCommandInterfacesFromEigenVector(
-      control_inputs_queue_.front());
-    control_inputs_queue_.pop();
+      control_inputs_storage_.at(random_delay));
   }
 
   plant_.state[kPreviousStep] = plant_.state[kCurrentStep];
@@ -421,6 +431,13 @@ void UnconstrainedMpcController::resetPlantVectors()
   plant_.augmented_state = types::augmented_state_vector_t::Zero(
     mpc_params_.control_size + mpc_params_.output_size);
   plant_.control_input_increment = types::control_vector_t::Zero(mpc_params_.control_size);
+}
+
+size_t UnconstrainedMpcController::generateRandomDelay(int max_samples_delay) {
+  static std::random_device rd;
+  static std::mt19937 gen(rd());
+  std::uniform_int_distribution<> dis(0, max_samples_delay);
+  return dis(gen);
 }
 
 }  // namespace unconstrained_mpc_controller
