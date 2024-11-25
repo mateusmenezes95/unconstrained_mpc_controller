@@ -145,12 +145,9 @@ controller_interface::CallbackReturn UnconstrainedMpcController::on_configure(
   future_refs_.clear();
   // Start with a vector of zeros. TODO(mmeneses): Allows to pass initial future refs as parameter
   future_refs_.resize(params_.prediction_horizon*params_.state_size, 0.0);
-  current_desired_robot_vel.resize(params_.state_size, 0.0);
+  current_desired_robot_vel_.resize(params_.state_size, 0.0);
 
-  control_input_rt_pub_ptr_.create(node_, "~/control_input");
-  desired_robot_vel_rt_pub_ptr_.create(node_, "~/desired_robot_vel");
-  robot_vel_rt_pub_ptr_.create(node_, "~/robot_vel");
-  period_rt_pub_.create(node_, "~/current_delay");
+  mpc_data_rt_pub_.create(node_, "~/mpc_data");
 
   control_inputs_storage_.clear();
   control_inputs_storage_.resize(params_.control_input_delay_samples + 1);
@@ -308,12 +305,11 @@ UnconstrainedMpcController::update(const rclcpp::Time & time, const rclcpp::Dura
 
   robot_vel_vec_ = eigen_hw_ifaces_bridge_.plant_state->getStateInterfacesAsEigenVector();
 
-  auto & robot_vel_msg = robot_vel_rt_pub_ptr_.getMsg();
-  robot_vel_msg.linear.x = robot_vel_vec_(0);
-  robot_vel_msg.linear.y = robot_vel_vec_(1);
-  robot_vel_msg.linear.z = robot_vel_vec_(2);
-  robot_vel_msg.angular.z = robot_vel_vec_(3);
-  robot_vel_rt_pub_ptr_.publish();
+  auto & mpc_data = mpc_data_rt_pub_.getMsg();
+  mpc_data.robot_vel.linear.x = robot_vel_vec_(0);
+  mpc_data.robot_vel.linear.y = robot_vel_vec_(1);
+  mpc_data.robot_vel.linear.z = robot_vel_vec_(2);
+  mpc_data.robot_vel.angular.z = robot_vel_vec_(3);
 
   if (future_refs_rcvd_) {
     auto future_refs_values = future_refs_rt_buffer_.readFromRT();
@@ -382,8 +378,7 @@ UnconstrainedMpcController::update(const rclcpp::Time & time, const rclcpp::Dura
   }
 
   size_t random_delay = generateRandomDelay(static_cast<int>(params_.control_input_delay_samples));
-  period_rt_pub_.getMsg().data = period.seconds() * static_cast<double>(random_delay);
-  period_rt_pub_.publish();
+  mpc_data.delay.data = period.seconds() * static_cast<double>(random_delay);
 
   if (current_time_step_ >= random_delay) {
     eigen_hw_ifaces_bridge_.plant_control_input->setCommandInterfacesFromEigenVector(
@@ -395,27 +390,25 @@ UnconstrainedMpcController::update(const rclcpp::Time & time, const rclcpp::Dura
 
   auto current_ref = future_refs_.begin() + (current_time_step_ * params_.state_size);
   if (current_ref < future_refs_.end()) {
-    current_desired_robot_vel.insert(
-      current_desired_robot_vel.begin(),
+    current_desired_robot_vel_.insert(
+      current_desired_robot_vel_.begin(),
       current_ref,
       current_ref + params_.state_size);
   }
 
-  auto & desired_robot_vel_msg = desired_robot_vel_rt_pub_ptr_.getMsg();
-  desired_robot_vel_msg.linear.x = current_desired_robot_vel.at(0);
-  desired_robot_vel_msg.linear.y = current_desired_robot_vel.at(1);
-  desired_robot_vel_msg.linear.z = current_desired_robot_vel.at(2);
-  desired_robot_vel_msg.angular.z = current_desired_robot_vel.at(3);
-  desired_robot_vel_rt_pub_ptr_.publish();
+  mpc_data.desired_robot_vel.linear.x = current_desired_robot_vel_.at(0);
+  mpc_data.desired_robot_vel.linear.y = current_desired_robot_vel_.at(1);
+  mpc_data.desired_robot_vel.linear.z = current_desired_robot_vel_.at(2);
+  mpc_data.desired_robot_vel.angular.z = current_desired_robot_vel_.at(3);
 
   current_time_step_++;
 
-  auto & ctrl_input_as_wrench = control_input_rt_pub_ptr_.getMsg();
-  ctrl_input_as_wrench.force.x = plant_.control_input[kCurrentStep](0);
-  ctrl_input_as_wrench.force.y = plant_.control_input[kCurrentStep](1);
-  ctrl_input_as_wrench.force.z = plant_.control_input[kCurrentStep](2);
-  ctrl_input_as_wrench.torque.z = plant_.control_input[kCurrentStep](3);
-  control_input_rt_pub_ptr_.publish();
+  mpc_data.ctrl_input.force.x = plant_.control_input[kCurrentStep](0);
+  mpc_data.ctrl_input.force.y = plant_.control_input[kCurrentStep](1);
+  mpc_data.ctrl_input.force.z = plant_.control_input[kCurrentStep](2);
+  mpc_data.ctrl_input.torque.z = plant_.control_input[kCurrentStep](3);
+
+  mpc_data_rt_pub_.publish();
 
   return controller_interface::return_type::OK;
 }

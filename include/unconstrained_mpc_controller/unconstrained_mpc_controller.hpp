@@ -37,6 +37,7 @@
 #include "std_msgs/msg/float64_multi_array.hpp"
 #include "std_msgs/msg/float64.hpp"
 
+#include "unconstrained_mpc_controller_msgs/msg/unconstrained_mpc_data.hpp"
 #include "unconstrained_mpc_controller_params.hpp"  // NOLINT
 #include "unconstrained_mpc_controller/eigen_vector_cmd_interface_bridge.hpp"
 #include "unconstrained_mpc_controller/mpc_matrix_converter.hpp"
@@ -54,13 +55,13 @@ static constexpr size_t kMillisecondToWarnNoFutureRefsRcvd{1000};
 
 /**
  * @brief Represent the discrete time step k-1 in a array with only two elements.
- * 
+ *
  */
 static constexpr size_t kPreviousStep{0};
 
 /**
  * @brief Represent the discrete time step k in a array with only two elements.
- * 
+ *
  */
 static constexpr size_t kCurrentStep{1};
 
@@ -222,7 +223,7 @@ public:
 private:
   /**
    * @brief Reset the values of all plant vectors in @ref plant_ to zero.
-   * 
+   *
    */
   void resetPlantVectors();
 
@@ -269,7 +270,8 @@ private:
    * @brief Struct that holds the Eigen bridges to the hardware interfaces.
    *
    */
-  struct EigenHwInterfaceBridges {
+  struct EigenHwInterfaceBridges
+  {
     /**
      * @brief Eigen vector bridge that connects the computed control input to the command interfaces
      *
@@ -317,7 +319,7 @@ private:
 
   /**
    * @brief Struct that holds all plant data used by the MPC control law.
-   * 
+   *
    */
   types::PlantData plant_;
 
@@ -343,11 +345,10 @@ private:
   // TODO(mmeneses): Move publisher for independent package. This implementation must be generic
   // and agnostic to the robot/plant being used
   types::state_vector_t robot_vel_vec_;
-  RealtimePublisherWrapper<geometry_msgs::msg::Wrench> control_input_rt_pub_ptr_;
-  RealtimePublisherWrapper<geometry_msgs::msg::Twist> robot_vel_rt_pub_ptr_;
-  RealtimePublisherWrapper<geometry_msgs::msg::Twist> desired_robot_vel_rt_pub_ptr_;
-  RealtimePublisherWrapper<std_msgs::msg::Float64> period_rt_pub_;
-  std::vector<double> current_desired_robot_vel;
+  RealtimePublisherWrapper<unconstrained_mpc_controller_msgs::msg::UnconstrainedMpcData>
+  mpc_data_rt_pub_;
+
+  std::vector<double> current_desired_robot_vel_;
 
   /**
    * @brief Flag to check if the future references were received.

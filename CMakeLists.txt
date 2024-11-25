@@ -21,6 +21,7 @@ set(DEPENDENCIES_FOR_THIS_PACKAGE
   rclcpp_lifecycle
   realtime_tools
   std_msgs
+  unconstrained_mpc_controller_msgs
 )
 
 foreach(dependency IN ITEMS ${DEPENDENCIES_FOR_THIS_PACKAGE})
@@ -246,5 +247,7 @@ endif()
 ament_export_targets(
   export_${PROJECT_NAME} HAS_LIBRARY_TARGET
 )
+
+ament_export_dependencies(${DEPENDENCIES_FOR_THIS_PACKAGE})
 
 ament_package()
