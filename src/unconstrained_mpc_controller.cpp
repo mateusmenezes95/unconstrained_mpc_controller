@@ -26,6 +26,7 @@
 #include <random>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "controller_interface/controller_interface.hpp"
@@ -285,15 +286,21 @@ UnconstrainedMpcController::state_interface_configuration() const
   controller_interface::InterfaceConfiguration state_iface_config;
   state_iface_config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
 
-  state_iface_config.names.insert(
-    state_iface_config.names.end(),
+  // Unordored set to avoid duplicates state interfaces
+  // in case the same interface is used for both state and output
+  // See https://github.com/ros-controls/ros2_control/pull/2090
+  std::unordered_set<std::string> state_iface_names;
+  state_iface_names.insert(
     params_.required_hw_ifaces.plant.state.begin(),
     params_.required_hw_ifaces.plant.state.end());
+  state_iface_names.insert(
+    params_.required_hw_ifaces.plant.output.begin(),
+    params_.required_hw_ifaces.plant.output.end());
 
   state_iface_config.names.insert(
     state_iface_config.names.end(),
-    params_.required_hw_ifaces.plant.output.begin(),
-    params_.required_hw_ifaces.plant.output.end());
+    state_iface_names.begin(),
+    state_iface_names.end());
 
   return state_iface_config;
 }
