@@ -30,7 +30,7 @@ class FutureReferencesPublisher(Node):
     def __init__(self):
         super().__init__('future_refs_publisher')
         self.publisher = self.create_publisher(
-            Float64MultiArray, '/unconstrained_mpc/future_refs', 10)
+            Float64MultiArray, '/unconstrained_mpc_controller/future_refs', 10)
 
     def read_csv_file(self, file_path):
         with open(file_path, 'r') as file:
@@ -54,6 +54,7 @@ def main(args=None):
     file = '/home/bluerov2/ros-ws/src/unconstrained_mpc_controller/scripts/trajectory_example.csv'
     future_refs = future_refs_publisher.read_csv_file(file)
     future_refs_publisher.publish_future_refs(future_refs)
+    rclpy.spin(future_refs_publisher)
     future_refs_publisher.destroy_node()
     rclpy.shutdown()
 
